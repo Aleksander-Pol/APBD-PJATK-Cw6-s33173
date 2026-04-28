@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>APBD_PJATK_Cw6_s33173</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7"/>
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.7" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Controllers\" />
+      <Folder Include="DTOs\" />
+      <Folder Include="Services\" />
+    </ItemGroup>
+
+</Project>
