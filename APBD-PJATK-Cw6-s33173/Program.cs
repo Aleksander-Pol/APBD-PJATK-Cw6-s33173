@@ -1,3 +1,5 @@
+using APBD_PJATK_Cw6_s33173.Services;
+
 namespace APBD_PJATK_Cw6_s33173;
 
 public class Program
@@ -9,6 +11,7 @@ public class Program
 
         builder.Services.AddControllers();
         builder.Services.AddOpenApi();
+        builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
         var app = builder.Build();
 
