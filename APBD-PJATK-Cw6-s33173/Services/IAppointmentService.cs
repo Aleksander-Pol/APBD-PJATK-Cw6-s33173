@@ -8,5 +8,5 @@ public interface IAppointmentService
     Task<IEnumerable<AppointmentListDto>> GetAllAppointments(String? status = null, String? lastName = null);
     Task<AppointmentDetailsDto> GetAppointmentById(int id);
     Task<int> CreateAppointmentAsync(CreateAppointmentRequestDto appointment, CancellationToken cancellationToken = default);
-    
+    Task UpdateAppointmentAsync(int id, UpdateAppointmentRequestDto appointment, CancellationToken cancellationToken = default);
 }

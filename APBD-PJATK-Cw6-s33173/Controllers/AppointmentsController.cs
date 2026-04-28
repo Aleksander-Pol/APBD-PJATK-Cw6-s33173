@@ -1,4 +1,5 @@
 ﻿using APBD_PJATK_Cw6_s33173.DTOs;
+using APBD_PJATK_Cw6_s33173.Exceptions;
 using APBD_PJATK_Cw6_s33173.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -48,6 +49,30 @@ public class AppointmentsController (IAppointmentService appointmentService) : C
         }
         
        
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateAppointmentRequestDto appointment,
+        CancellationToken cancellationToken)
+    {
+
+        try
+        {
+            await appointmentService.UpdateAppointmentAsync(id, appointment, cancellationToken);
+            return NoContent();
+        }
+        catch (NotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Conflict e)
+        {
+            return Conflict(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest();
+        }
     }
     
 }
