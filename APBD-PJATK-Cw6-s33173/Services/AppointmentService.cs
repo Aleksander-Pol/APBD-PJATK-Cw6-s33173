@@ -83,7 +83,7 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
 
         while (await reader.ReadAsync())
         {
-            appointment = new AppointmentDetailsDto()
+            appointment ??= new AppointmentDetailsDto()
             {
                 email = reader.GetString(0),
                 phoneNumber = reader.GetString(1),
@@ -101,5 +101,95 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
         }
         
         return appointment;
+    }
+
+    public async Task<int> CreateAppointmentAsync(CreateAppointmentRequestDto appointment, CancellationToken cancellationToken = default)
+    {
+        await using var connection = new SqlConnection(configuration.GetConnectionString("Default"));
+        await using var command = new SqlCommand();
+
+        await connection.OpenAsync(cancellationToken);
+        
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        command.Connection = connection;
+        command.Transaction = (SqlTransaction)transaction;
+
+        command.CommandText = """
+                              select 1 from dbo.Patients
+                              where idPatient = @PatientId AND IsActive = 1
+                              """;
+
+        command.Parameters.AddWithValue("@PatientId", appointment.IdPatient);
+
+        var isPatientRealAndActive = await command.ExecuteScalarAsync(cancellationToken);
+        command.Parameters.Clear();
+
+        if (isPatientRealAndActive is null)
+            throw new NotFoundException($"Patient of id {appointment.IdPatient} was either not found" +
+                                        $"or was not active");
+
+        command.CommandText = """
+                              select 1 from dbo.Doctors
+                              where idDoctor = @DoctorId AND IsActive = 1
+                              """;
+        
+        command.Parameters.AddWithValue("@DoctorId", appointment.IdDoctor);
+        
+        var isDoctorRealAndActive = await command.ExecuteScalarAsync(cancellationToken);
+        command.Parameters.Clear();
+        
+        if (isDoctorRealAndActive is null)
+            throw new NotFoundException($"Doctor of id {appointment.IdDoctor} was either not found" +
+                                        $"or was not active");
+
+        if (appointment.AppointmentDate < DateTime.Now)
+            throw new Conflict($"Appointment date: {appointment.AppointmentDate} is in the past");
+
+
+        command.CommandText = """
+                              select 1 from dbo.Appointments a
+                              where a.IdDoctor = @DoctorId AND a.AppointmentDate = @AppointmentDate
+                              """;
+
+        command.Parameters.AddWithValue("@AppointmentDate", appointment.AppointmentDate);
+        command.Parameters.AddWithValue("@DoctorId", appointment.IdDoctor);
+        
+
+        var isThisDateFree = await command.ExecuteScalarAsync(cancellationToken);
+        
+        
+        if (isThisDateFree is not null)
+            throw new Conflict("This date is already scheduled");
+        
+        command.Parameters.Clear();
+
+        try
+        {
+            command.CommandText = """
+                                  insert into dbo.Appointments (IdPatient, IdDoctor, AppointmentDate, Status, Reason)
+                                  output inserted.IdAppointment
+                                  values (@1, @2, @3, @4, @5)
+                                  """;
+
+            command.Parameters.AddWithValue("@1", appointment.IdPatient);
+            command.Parameters.AddWithValue("@2", appointment.IdDoctor);
+            command.Parameters.AddWithValue("@3", appointment.AppointmentDate);
+            command.Parameters.AddWithValue("@4", "Scheduled");
+            command.Parameters.AddWithValue("@5", appointment.Reason);
+
+            var appointmentId = (int)await command.ExecuteScalarAsync(cancellationToken);
+            command.Parameters.Clear();
+            
+            await transaction.CommitAsync(cancellationToken);
+
+            return appointmentId;
+
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+        
     }
 }
