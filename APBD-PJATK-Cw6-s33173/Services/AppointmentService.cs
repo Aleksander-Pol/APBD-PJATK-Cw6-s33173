@@ -1,4 +1,5 @@
 ﻿using APBD_PJATK_Cw6_s33173.DTOs;
+using APBD_PJATK_Cw6_s33173.Exceptions;
 using Microsoft.Data.SqlClient;
 
 namespace APBD_PJATK_Cw6_s33173.Services;
@@ -56,5 +57,49 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
         command.Parameters.Clear();
         
         return result;
+    }
+
+    public async Task<AppointmentDetailsDto> GetAppointmentById(int id)
+    {
+        AppointmentDetailsDto? appointment = null;
+
+        await using var connection = new SqlConnection(configuration.GetConnectionString("Default"));
+        await using var command = new SqlCommand();
+        
+        command.Connection = connection;
+
+        command.CommandText = """
+                              SELECT p.email, p.phoneNumber, d.licenseNumber, a.internalNotes, a.createdAt FROM Appointments a
+                              LEFT JOIN dbo.Patients p ON p.IdPatient = a.IdPatient
+                              LEFT JOIN dbo.Doctors d ON d.IdDoctor = a.IdDoctor
+                              WHERE a.IdAppointment = @id
+                              """;
+        
+        command.Parameters.AddWithValue("@id", id);
+        
+        await connection.OpenAsync();
+        
+        var reader =  await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            appointment = new AppointmentDetailsDto()
+            {
+                email = reader.GetString(0),
+                phoneNumber = reader.GetString(1),
+                licenseNumber = reader.GetString(2),
+                internalNotes = reader.IsDBNull(3)? null : reader.GetString(3),
+                createdAt = reader.GetDateTime(4),
+            };
+        }
+        
+        command.Parameters.Clear();
+
+        if (appointment is null)
+        {
+            throw new NotFoundException($"Appointment with id {id} not found");
+        }
+        
+        return appointment;
     }
 }

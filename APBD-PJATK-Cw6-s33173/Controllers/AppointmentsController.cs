@@ -13,4 +13,21 @@ public class AppointmentsController (IAppointmentService appointmentService) : C
     {
         return Ok(await appointmentService.GetAllAppointments(status, lastName));
     }
+
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById([FromRoute]int id)
+    {
+        try
+        {
+            return Ok(await appointmentService.GetAppointmentById(id));
+
+        }
+        catch (Exception ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+    
+    
 }
