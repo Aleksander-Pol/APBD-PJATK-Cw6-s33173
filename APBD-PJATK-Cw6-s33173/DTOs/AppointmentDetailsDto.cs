@@ -2,10 +2,9 @@
 
 public class AppointmentDetailsDto
 {
-    
-    public string email { get; set; } = string.Empty;
-    public string phoneNumber  { get; set; } = string.Empty;
-    public string licenseNumber { get; set; } = string.Empty;
-    public string? internalNotes { get; set; } = string.Empty;
-    public DateTime createdAt { get; set; } 
+    public string Email { get; set; } = string.Empty;
+    public string PhoneNumber  { get; set; } = string.Empty;
+    public string LicenseNumber { get; set; } = string.Empty;
+    public string? InternalNotes { get; set; }
+    public DateTime CreatedAt { get; set; } 
 }

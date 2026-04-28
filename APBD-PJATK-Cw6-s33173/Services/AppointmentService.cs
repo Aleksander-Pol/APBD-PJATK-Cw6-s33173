@@ -85,11 +85,11 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
         {
             appointment ??= new AppointmentDetailsDto()
             {
-                email = reader.GetString(0),
-                phoneNumber = reader.GetString(1),
-                licenseNumber = reader.GetString(2),
-                internalNotes = reader.IsDBNull(3)? null : reader.GetString(3),
-                createdAt = reader.GetDateTime(4),
+                Email = reader.GetString(0),
+                PhoneNumber = reader.GetString(1),
+                LicenseNumber = reader.GetString(2),
+                InternalNotes = reader.IsDBNull(3)? null : reader.GetString(3),
+                CreatedAt = reader.GetDateTime(4),
             };
         }
         
