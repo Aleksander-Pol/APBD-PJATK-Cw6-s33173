@@ -316,4 +316,47 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
         }
         
     }
+
+    public async Task DeleteAppointmentAsync(int id, CancellationToken cancellationToken = default)
+    {
+        using var connection = new SqlConnection(configuration.GetConnectionString("Default"));
+        using var command = new SqlCommand();
+
+        command.Connection = connection;
+        
+        await connection.OpenAsync(cancellationToken);
+        using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        command.Transaction = (SqlTransaction)transaction;
+
+        command.CommandText = """
+                              select Status from  dbo.Appointments where  IdAppointment = @IdAppointment
+                              """;
+        command.Parameters.AddWithValue("@IdAppointment", id);
+        
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        
+        if (result is null)
+            throw new NotFoundException($"Appointment with id {id} not found");
+        
+        if (result.ToString() is "Completed")
+            throw new Conflict($"Appointment with id {id} is completed");
+        
+        command.Parameters.Clear();
+
+        try
+        {
+            command.CommandText = """
+                                  delete from  Appointments where IdAppointment = @IdAppointment
+                                  """;
+
+            command.Parameters.AddWithValue("@IdAppointment", id);
+            await command.ExecuteNonQueryAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
 }

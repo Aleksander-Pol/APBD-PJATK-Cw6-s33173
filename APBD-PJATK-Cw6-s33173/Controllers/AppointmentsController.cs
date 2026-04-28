@@ -74,5 +74,26 @@ public class AppointmentsController (IAppointmentService appointmentService) : C
             return BadRequest();
         }
     }
-    
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteAsync(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await appointmentService.DeleteAppointmentAsync(id, cancellationToken);
+            return NoContent();
+        }
+        catch (NotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Conflict e)
+        {
+            return Conflict(e.Message);
+        }
+        catch (Exception e )
+        {
+            return BadRequest(e.Message);
+        }
+    }
 }
