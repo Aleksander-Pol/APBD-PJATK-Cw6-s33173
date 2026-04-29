@@ -27,7 +27,7 @@ public class AppointmentsController (IAppointmentService appointmentService) : C
         }
         catch (Exception ex)
         {
-            return NotFound(ex.Message);
+            return NotFound(new ErrorResponseDto{Message = ex.Message});
         }
     }
 
@@ -45,7 +45,7 @@ public class AppointmentsController (IAppointmentService appointmentService) : C
         }
         catch (Exception e)
         {
-            return Conflict(e.Message);
+            return Conflict(new ErrorResponseDto{Message = e.Message});
         }
         
        
@@ -63,15 +63,15 @@ public class AppointmentsController (IAppointmentService appointmentService) : C
         }
         catch (NotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ErrorResponseDto{Message = e.Message});
         }
         catch (Conflict e)
         {
-            return Conflict(e.Message);
+            return Conflict(new ErrorResponseDto{Message = e.Message});
         }
         catch (Exception e)
         {
-            return BadRequest();
+            return BadRequest(new ErrorResponseDto{Message = e.Message});
         }
     }
 
@@ -85,15 +85,15 @@ public class AppointmentsController (IAppointmentService appointmentService) : C
         }
         catch (NotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ErrorResponseDto{Message = e.Message});
         }
         catch (Conflict e)
         {
-            return Conflict(e.Message);
+            return Conflict(new ErrorResponseDto{Message = e.Message});
         }
         catch (Exception e )
         {
-            return BadRequest(e.Message);
+            return BadRequest(new ErrorResponseDto{Message = e.Message});
         }
     }
 }

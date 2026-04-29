@@ -11,14 +11,14 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
         List<AppointmentListDto> result = new List<AppointmentListDto>();
 
 
-        await using var connection = new SqlConnection(configuration.GetConnectionString("Default"));
+        await using var connection = new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
        await using var command = new SqlCommand();
 
 
         command.Connection = connection;
         
-        command.Parameters.AddWithValue("@Status", status).Value = string.IsNullOrWhiteSpace(status)? DBNull.Value : status;
-        command.Parameters.AddWithValue("@PatientLastName", lastName).Value = string.IsNullOrWhiteSpace(lastName)? DBNull.Value : lastName;
+        command.Parameters.AddWithValue("@Status", string.IsNullOrWhiteSpace(status) ? DBNull.Value : status);
+        command.Parameters.AddWithValue("@PatientLastName", string.IsNullOrWhiteSpace(lastName) ? DBNull.Value : lastName);
         
         command.CommandText = """
                               SELECT
@@ -63,7 +63,7 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
     {
         AppointmentDetailsDto? appointment = null;
 
-        await using var connection = new SqlConnection(configuration.GetConnectionString("Default"));
+        await using var connection = new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
         await using var command = new SqlCommand();
         
         command.Connection = connection;
@@ -105,7 +105,7 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
 
     public async Task<int> CreateAppointmentAsync(CreateAppointmentRequestDto appointment, CancellationToken cancellationToken = default)
     {
-        await using var connection = new SqlConnection(configuration.GetConnectionString("Default"));
+        await using var connection = new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
         await using var command = new SqlCommand();
 
         await connection.OpenAsync(cancellationToken);
@@ -195,7 +195,7 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
 
     public async Task UpdateAppointmentAsync(int id, UpdateAppointmentRequestDto appointment, CancellationToken cancellationToken = default)
     {
-        await using var connection = new SqlConnection(configuration.GetConnectionString("Default"));
+        await using var connection = new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
         await using var command = new SqlCommand();
         
         command.Connection = connection;
@@ -319,13 +319,13 @@ public class AppointmentService (IConfiguration configuration) : IAppointmentSer
 
     public async Task DeleteAppointmentAsync(int id, CancellationToken cancellationToken = default)
     {
-        using var connection = new SqlConnection(configuration.GetConnectionString("Default"));
-        using var command = new SqlCommand();
+        await using var connection = new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
+        await using var command = new SqlCommand();
 
         command.Connection = connection;
         
         await connection.OpenAsync(cancellationToken);
-        using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         command.Transaction = (SqlTransaction)transaction;
 
         command.CommandText = """
